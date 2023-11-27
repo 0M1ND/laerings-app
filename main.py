@@ -2,26 +2,39 @@
 import pygame
 pygame.init()
 
+import random
+
 # Importer vores game.py fil, som vi har lavet
 from game import *
 
 # Her henter vi skrift typen frem fra mappen
-FONT = pygame.font.Font("./Indie.ttf", 32)
-LARGE_FONT = pygame.font.Font("./Indie.ttf", 58)
+FONT = pygame.font.Font("./Indie.ttf", 24)
 
-Game().getInstance().add_sentence("Jeg(O) spiser(X) aftensmad når jeg(O) kommer(X) hjem.")
+BLACK = (0,0,0)
+GRAY = (150, 150, 150)
+
+# indsæt sætninger her
+sentences = [
+    "Jeg(X) spiser(O) aftensmad når jeg(X) kommer(O) hjem.",
+    "Jeg(X) synes(O) at han(X) er(O) sød",
+    "Hvis han(X) kommer(O) så holder(O) jeg(X) mig væk",
+    "Jeg(X) er(O) glad for at du(X) er(O) her",
+    "Jeg(X) gik(O) en tur fordi jeg(X) havde(O) lyst.",
+    "Forfatteren(X) leger(O) med ordene."
+]
+
+# Blander sætningerne
+random.shuffle(sentences)
+
+for s in sentences:
+    Game.getInstance().add_sentence(s)
 
 class App:
     def __init__(self):
         self.running = True
-        self.width = 400
-        self.heigth = 500
+        self.width = 800
+        self.heigth = 300
         self.screen = pygame.display.set_mode((self.width,self.heigth))
-        self.button_height = self.width/2 - 30
-        
-        self.selected = None;
-        self.O_button_rect = pygame.Rect(10,self.heigth - self.button_height - 10,self.width/2 - 30,self.button_height)
-        self.X_button_rect = pygame.Rect(10 + self.width / 2 + 5,self.heigth - self.button_height - 10,self.width/2 - 30,self.button_height)
 
     def is_hovering(self, rect):
         mouse_pos = pygame.mouse.get_pos()
@@ -39,88 +52,70 @@ class App:
             if event.type == pygame.QUIT:
                 self.running = False
 
-            # Hvis vi klikker på musen
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                if self.is_hovering(self.O_button_rect):
-                    self.selected = "O"
-                elif self.is_hovering(self.X_button_rect):
-                    self.selected = "X"
-                print(self.selected)
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:
+                    Game.getInstance().next_word()
+
+                if event.key == pygame.K_x:
+                    Game.getInstance().guess("X")
+                    Game.getInstance().next_word()
+
+                if event.key == pygame.K_o:
+                    Game.getInstance().guess("O")
+                    Game.getInstance().next_word()
+
+                if event.key == pygame.K_BACKSPACE:
+                    Game.getInstance().prev_word()
+
+                if event.key == pygame.K_ESCAPE:
+                    self.running = False
 
     def draw_text(self, text, position, color = (0,0,0)):
         t = FONT.render(text, True, color)
         self.screen.blit(t, position)
 
-    # Taget fra: https://stackoverflow.com/questions/49432109/how-to-wrap-text-in-pygame-using-pygame-font-font
-    def renderTextCenteredAt(self, text, font, colour, x, y, allowed_width):
-        # first, split the text into words
-        words = text.split()
-
-        # now, construct lines out of these words
-        lines = []
-        while len(words) > 0:
-            # get as many words as will fit within allowed_width
-            line_words = []
-            while len(words) > 0:
-                line_words.append(words.pop(0))
-                fw, fh = font.size(' '.join(line_words + words[:1]))
-                if fw > allowed_width:
-                    break
-
-            # add a line consisting of those words
-            line = ' '.join(line_words)
-            lines.append(line)
-
-        # now we've split our text into lines that fit into the width, actually
-        # render them
-
-        # we'll render each line below the last, so we need to keep track of
-        # the culmative height of the lines we've rendered so far
-        y_offset = 0
-        for line in lines:
-            fw, fh = font.size(line)
-
-            # (tx, ty) is the top-left of the font surface
-            tx = x - fw / 2
-            ty = y + y_offset
-
-            font_surface = font.render(line, True, colour)
-            self.screen.blit(font_surface, (tx, ty))
-
-            y_offset += fh
-
-    def darken_color(self, color, amount):
-        r = color[0] - amount
-        g = color[1] - amount
-        b = color[2] - amount
-
-        if r < 0:
-            r = 0
-        if g < 0:
-            g = 0
-        if b < 0:
-            b = 0
-            
-        return (r,g,b)
+    def draw_centered_text(self, text, position, color = (0,0,0)):
+        t = FONT.render(text, True, color)
+        self.screen.blit(t, (position[0] - t.get_width() / 2, position[1] - t.get_height() / 2))
 
     def draw(self):
-        # Hvid baggrund
+        # Baggrundsfarve
         self.screen.fill((255,255,255))
+
+        self.draw_centered_text("2-Gram", (self.width / 2, 30), (0,0,0))
+
+        # Tegn 1/? i toppen af højre hjørne
+        self.draw_text(str(Game.getInstance().current_sentence + 1) + "/" + str(len(Game.getInstance().sentences)), (self.width - 50, 30), GRAY)
         
+        # Tegn controls
+        self.draw_centered_text("Mellemrum: Næste ord X: Set kryds O: Set bolle Backspace: Fjern og gå tilbage", (self.width / 2, self.heigth - 20), GRAY)
 
-        
-        pygame.draw.rect(self.screen, (68,201,173), self.O_button_rect, 10 if self.selected == "O" else 0)
-        self.renderTextCenteredAt("O", LARGE_FONT, (0,0,0), self.O_button_rect.centerx, self.O_button_rect.centery - 40, self.O_button_rect.width)
-        pygame.draw.rect(self.screen, (201,84,68), self.X_button_rect, 10 if self.selected == "X" else 0)
-        self.renderTextCenteredAt("X", LARGE_FONT, (0,0,0), self.X_button_rect.centerx, self.X_button_rect.centery - 40, self.X_button_rect.width)
+        # Find pygame rect størrelsen på vores sætning
+        text = Game.getInstance().get_current_sentence()
+        if text != None:
+            text = Game.getInstance().sentence_to_string(text)
+            text_rect = FONT.render(text, True, (0,0,0)).get_rect()
 
+            # Tegn et ord af gangen
+            for i, word in enumerate(Game.getInstance().get_current_sentence()):
+                # Find den samlede længde af alle ord indtil nu
+                total_width = 0
+                for j in range(i):
+                    total_width += FONT.render(Game.getInstance().get_current_sentence()[j].word, True, BLACK).get_width() + 10
 
-        self.renderTextCenteredAt(Game().getInstance().sentence_to_string(Game().getInstance().sentences[0]), FONT, (0,0,0), self.width/2, 100, self.width - 20)
+                # Tegn ordet
+                word_rect = FONT.render(word.word, True, BLACK).get_rect()
+                self.draw_text(word.word, (self.width / 2 - text_rect.width / 2 + total_width, 180), BLACK) 
+
+                # Hvis ordet er gættet, så tegn det
+                if word.guess != None and i != Game.getInstance().current_word:
+                    self.draw_text(word.guess, (self.width / 2 - text_rect.width / 2 + total_width + word_rect.width / 2, 210), BLACK)               
+                
+                # Hvis ordet er det ord vi skal gætte på, så tegn en ^ under ordet
+                if i == Game.getInstance().current_word:
+                    self.draw_text("^", (self.width / 2 - text_rect.width / 2 + total_width + word_rect.width / 2, 210), BLACK)
 
         pygame.display.update()
-        pygame.display.flip()
-
-
 
 # Her kalder vi init funkstionen. :)
 app = App()
