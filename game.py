@@ -27,6 +27,7 @@ class Game:
         self.current_sentence = 0
         self.current_word = 0
 
+    # Den går et ord tilbage, så det det der sker når du trykker på backspace.
     def prev_word(self):
         self.current_word -= 1
         if self.current_word < 0:
@@ -37,6 +38,7 @@ class Game:
             else:
                 self.current_word = len(self.sentences[self.current_sentence]) - 1
 
+    # Tjekker om setningen er korekt og gir fejlne 
     def is_correct(self):
         errors = []
         for word in self.sentences[self.current_sentence]:
@@ -48,6 +50,7 @@ class Game:
 
         return errors
 
+    # Den går til næste setning hvis der en og hvis du har gætede rigtigt på alle ordne.
     def next_sentence(self):
         errors = self.is_correct()
 
@@ -62,13 +65,14 @@ class Game:
         self.current_word = 0
         self.current_sentence += 1
 
+    # Den går til det næste ord.
     def next_word(self):
         self.current_word += 1
         if self.current_word >= len(self.sentences[self.current_sentence]):
             self.next_sentence()
         else: 
             self.guess(None)
-
+    # Den gætter på hvad ordet skal være på. så det det der sker når du trykker på x og o
     def guess(self, guess):
         self.sentences[self.current_sentence][self.current_word].guess = guess
 
