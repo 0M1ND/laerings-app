@@ -7,6 +7,7 @@ import game
 
 # Her henter vi skrift typen frem fra mappen
 FONT = pygame.font.Font("./Indie.ttf", 32)
+LARGE_FONT = pygame.font.Font("./Indie.ttf", 58)
 
 game = game.Game()
 game.add_sentence("Jeg(O) spiser(X) aftensmad når jeg(O) kommer(X) hjem.")
@@ -20,8 +21,8 @@ class App:
         self.button_height = self.width/2 - 30
         
         self.selected = None;
-        self.x_button_rect = pygame.Rect(10,self.heigth - self.button_height - 10,self.width/2 - 30,self.button_height)
-        self.o_button_rect = pygame.Rect(10 + self.width / 2 + 5,self.heigth - self.button_height - 10,self.width/2 - 30,self.button_height)
+        self.O_button_rect = pygame.Rect(10,self.heigth - self.button_height - 10,self.width/2 - 30,self.button_height)
+        self.X_button_rect = pygame.Rect(10 + self.width / 2 + 5,self.heigth - self.button_height - 10,self.width/2 - 30,self.button_height)
 
     def is_hovering(self, rect):
         mouse_pos = pygame.mouse.get_pos()
@@ -41,10 +42,11 @@ class App:
 
             # Hvis vi klikker på musen
             if event.type == pygame.MOUSEBUTTONDOWN:
-                if self.is_hovering(self.x_button_rect):
-                    self.selected = "X"
-                elif self.is_hovering(self.o_button_rect):
+                if self.is_hovering(self.O_button_rect):
                     self.selected = "O"
+                elif self.is_hovering(self.X_button_rect):
+                    self.selected = "X"
+                print(self.selected)
 
     def draw_text(self, text, position, color = (0,0,0)):
         t = FONT.render(text, True, color)
@@ -88,13 +90,33 @@ class App:
 
             y_offset += fh
 
+    def darken_color(self, color, amount):
+        r = color[0] - amount
+        g = color[1] - amount
+        b = color[2] - amount
+
+        if r < 0:
+            r = 0
+        if g < 0:
+            g = 0
+        if b < 0:
+            b = 0
+            
+        return (r,g,b)
+
     def draw(self):
         # Hvid baggrund
         self.screen.fill((255,255,255))
         
-        pygame.draw.rect(self.screen, (68,201,173), self.x_button_rect)
-        pygame.draw.rect(self.screen, (201,84,68), self.o_button_rect)
 
+        
+        pygame.draw.rect(self.screen, (68,201,173), self.O_button_rect, 10 if self.selected == "O" else 0)
+        self.renderTextCenteredAt("O", LARGE_FONT, (0,0,0), self.O_button_rect.centerx, self.O_button_rect.centery - 40, self.O_button_rect.width)
+        pygame.draw.rect(self.screen, (201,84,68), self.X_button_rect, 10 if self.selected == "X" else 0)
+        self.renderTextCenteredAt("X", LARGE_FONT, (0,0,0), self.X_button_rect.centerx, self.X_button_rect.centery - 40, self.X_button_rect.width)
+
+
+        self.renderTextCenteredAt(game.sentence_to_string(game.sentences[0]), FONT, (0,0,0), self.width/2, 100, self.width - 20)
 
         pygame.display.update()
         pygame.display.flip()

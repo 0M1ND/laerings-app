@@ -29,5 +29,4 @@ class Game:
             else:
                 words.append(Word(w, None))
 
-        print(words)
         self.sentences.append(words)
