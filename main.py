@@ -116,7 +116,7 @@ class App:
         self.renderTextCenteredAt("X", LARGE_FONT, (0,0,0), self.X_button_rect.centerx, self.X_button_rect.centery - 40, self.X_button_rect.width)
 
 
-        self.renderTextCenteredAt(game.sentence_to_string(game.sentences[0]), FONT, (0,0,0), self.width/2, 100, self.width - 20)
+        self.renderTextCenteredAt(game.getInstance().sentence_to_string(game.getInstance().sentences[0]), FONT, (0,0,0), self.width/2, 100, self.width - 20)
 
         pygame.display.update()
         pygame.display.flip()

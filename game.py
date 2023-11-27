@@ -5,8 +5,23 @@ class Word:
         self.goal = goal
 
 
+# Singleton class
 class Game:
+
+    __instance = None
+
+    @staticmethod
+    def getInstance():
+        if Game.__instance == None:
+            Game()
+        return Game.__instance
+    
     def __init__(self):
+        if Game.__instance != None:
+            raise Exception("This class is a singleton!")
+        else:
+            Game.__instance = self
+
         self.sentences = []
 
     def sentence_to_string(self, sentence):
